@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Thanh toán - VNPAY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/vnpay-demo.css}">
+    <style>
+        .page-shell { max-width: 720px; margin: 0 auto; }
+        .card-elevated { border-radius: 14px; }
+        .section-title { font-weight: 600; }
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 0.65rem 0.9rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 0.2rem rgba(0, 82, 204, 0.15);
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="vnpay-demo py-5">
+
+<div class="page-shell container">
+    <div class="text-center mb-4">
+        <h1 class="section-title mb-1">Tạo mới đơn hàng</h1>
+        <p class="text-muted mb-0">Nhập thông tin để tạo yêu cầu thanh toán.</p>
+    </div>
+
+    <div class="card-elevated p-4">
+        <div class="text-center mb-3">
+            <img th:src="@{/vnpay-logo.png}" alt="VNPAY" style="width: 90px;">
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <form th:action="@{/vnpay/submitOrder}" method="post">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label for="txnRef" class="form-label">Mã đơn hàng (TxnRef)</label>
+                    <input type="text" class="form-control" id="txnRef" name="txnRef" required
+                           placeholder="Ví dụ: VNPAY2602131230451234" pattern="[A-Za-z0-9]{1,32}" maxlength="32"
+                           autocomplete="off"/>
+                    <div class="form-text d-flex align-items-center justify-content-between gap-2">
+                        <span>Chỉ gồm chữ/số, tối đa 100 ký tự, không trùng.</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="regenTxnRef">
+                            Tạo mới
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label for="amount" class="form-label">Số tiền (VNĐ)</label>
+                    <input type="number" class="form-control" id="amount" name="amount" value="10000" min="10000" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="ordertype" class="form-label">Loại hàng hóa</label>
+                    <select class="form-select" id="ordertype" name="ordertype" required>
+                        <option value="billpayment" selected>Thanh toán hóa đơn</option>
+                        <option value="topup">Nạp tiền điện thoại</option>
+                        <option value="fashion">Thời trang</option>
+                        <option value="oldmc">Hiển thị Nội dung giao dịch site VNPAY</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="bankcode" class="form-label">Phương thức/Ngân hàng</label>
+                    <select class="form-select" id="bankcode" name="bankcode">
+                        <option value="">Không chọn</option>
+                        <option value="VNPAYQR">VNPAYQR</option>
+                        <option value="VNBANK">LOCAL BANK (ATM/TK)</option>
+                        <option value="INTCARD">INTCARD (Thẻ Quốc tế)</option>
+                        <option value="NCB">Ngân hàng NCB</option>
+                        <option value="MBAPP">Mobile Banking App</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <label for="orderInfo" class="form-label">Nội dung thanh toán</label>
+                    <input type="text" class="form-control" id="orderInfo" name="orderInfo"
+                           maxlength="255" required
+                           placeholder="Ví dụ: Thanh toán đơn hàng #VNPAY260213...">
+                    <div class="form-text d-flex align-items-center justify-content-between">
+                        <div>
+                            <input class="form-check-input me-1" type="checkbox" id="autoOrderInfo" checked>
+                            <label class="form-check-label" for="autoOrderInfo">Tự động gợi ý theo TxnRef</label>
+                        </div>
+                        <span class="text-muted"><span id="orderInfoCount">0</span>/255</span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <label for="promocode" class="form-label">Mã khuyến mại</label>
+                    <input type="text" class="form-control" id="promocode" name="promocode" value="">
+                    <div class="form-text">Tuỳ chọn (nếu merchant có cấu hình trên VNPAY).</div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary w-100">Thanh toán</button>
+            </div>
+        </form>
+
+        <div class="mt-3">
+            <a th:href="@{/}" class="btn btn-outline-secondary w-100">Về menu chính</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generateTxnRef() {
+        const now = new Date();
+        const pad = (n) => n.toString().padStart(2, "0");
+        return (
+            now.getFullYear().toString().substring(2) + pad(now.getMonth() + 1) + pad(now.getDate()) +
+            pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds()) + Math.random().toString().substring(2, 6)
+        );
+    }
+
+    function setDefaultOrderInfo(txnRef) {
+        return "Thanh toan don hang: " + txnRef;
+    }
+
+    function updateOrderInfoCount() {
+        const orderInfo = document.getElementById("orderInfo");
+        const counter = document.getElementById("orderInfoCount");
+        if (!orderInfo || !counter) return;
+        counter.textContent = String((orderInfo.value || "").length);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const txnInput = document.getElementById("txnRef");
+        const orderInfoInput = document.getElementById("orderInfo");
+        const autoOrderInfo = document.getElementById("autoOrderInfo");
+        const regenBtn = document.getElementById("regenTxnRef");
+
+        const ensureTxnRef = () => {
+            if (txnInput && !txnInput.value) {
+                txnInput.value = "VNPAY" + generateTxnRef();
+            }
+        };
+
+        const maybeAutofillOrderInfo = () => {
+            if (!txnInput || !orderInfoInput || !autoOrderInfo) return;
+            if (!autoOrderInfo.checked) return;
+            orderInfoInput.value = setDefaultOrderInfo(txnInput.value);
+            updateOrderInfoCount();
+        };
+
+        ensureTxnRef();
+        if (orderInfoInput && !orderInfoInput.value) {
+            // initial suggestion
+            maybeAutofillOrderInfo();
+        } else {
+            updateOrderInfoCount();
+        }
+
+        txnInput?.addEventListener("input", () => maybeAutofillOrderInfo());
+        autoOrderInfo?.addEventListener("change", () => {
+            if (autoOrderInfo.checked) {
+                maybeAutofillOrderInfo();
+            }
+        });
+        orderInfoInput?.addEventListener("input", updateOrderInfoCount);
+        regenBtn?.addEventListener("click", () => {
+            if (!txnInput) return;
+            txnInput.value = "VNPAY" + generateTxnRef();
+            maybeAutofillOrderInfo();
+        });
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+set -eu
+
+if command -v mvn >/dev/null 2>&1; then
+  exec mvn "$@"
+fi
+
+echo "[INFO] Maven not found locally. Falling back to Dockerized Maven..."
+exec docker run --rm \
+  -v "$(pwd)":/workspace \
+  -w /workspace \
+  maven:3.9.9-eclipse-temurin-21 \
+  mvn "$@"

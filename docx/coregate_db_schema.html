@@ -1,0 +1,151 @@
+
+<style>
+#erd { padding: 0.5rem 0; }
+#erd svg { width: 100%; height: auto; }
+</style>
+<div id="erd"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+const { svg } = await mermaid.render('erd-svg', `erDiagram
+  USERS {
+    uuid id PK
+    string email UK
+    string password_hash
+    string full_name
+    string role
+    boolean is_active
+    timestamp created_at
+    timestamp updated_at
+  }
+  PRODUCTS {
+    uuid id PK
+    string name
+    string slug UK
+    text description
+    string category
+    decimal price
+    string currency
+    string file_key
+    bigint file_size_bytes
+    boolean is_active
+    timestamp created_at
+  }
+  CARTS {
+    uuid id PK
+    uuid user_id FK
+    timestamp expires_at
+    timestamp updated_at
+  }
+  CART_ITEMS {
+    uuid id PK
+    uuid cart_id FK
+    uuid product_id FK
+    decimal unit_price
+    timestamp added_at
+  }
+  ORDERS {
+    uuid id PK
+    uuid user_id FK
+    string order_ref UK
+    decimal total_amount
+    string currency
+    string status
+    timestamp created_at
+    timestamp paid_at
+  }
+  ORDER_ITEMS {
+    uuid id PK
+    uuid order_id FK
+    uuid product_id FK
+    decimal price_at_purchase
+  }
+  TRANSACTIONS {
+    uuid id PK
+    uuid order_id FK
+    string txn_ref UK
+    string gateway
+    decimal amount
+    string status
+    string raw_response
+    timestamp created_at
+  }
+  PAYMENTS {
+    uuid id PK
+    uuid transaction_id FK
+    string vnp_txn_ref
+    string vnp_bank_code
+    string vnp_response_code
+    string vnp_transaction_no
+    string vnp_secure_hash
+    boolean is_verified
+    timestamp paid_at
+  }
+  DOWNLOAD_LICENSES {
+    uuid id PK
+    uuid user_id FK
+    uuid order_item_id FK
+    uuid product_id FK
+    int download_count
+    int max_downloads
+    timestamp expires_at
+    timestamp created_at
+  }
+  DOWNLOAD_LOGS {
+    uuid id PK
+    uuid license_id FK
+    string ip_address
+    string user_agent
+    timestamp downloaded_at
+  }
+
+  USERS ||--o{ CARTS : owns
+  USERS ||--o{ ORDERS : places
+  USERS ||--o{ DOWNLOAD_LICENSES : holds
+  CARTS ||--o{ CART_ITEMS : contains
+  PRODUCTS ||--o{ CART_ITEMS : referenced_in
+  ORDERS ||--o{ ORDER_ITEMS : includes
+  PRODUCTS ||--o{ ORDER_ITEMS : sold_as
+  ORDERS ||--|| TRANSACTIONS : generates
+  TRANSACTIONS ||--|| PAYMENTS : recorded_in
+  ORDER_ITEMS ||--o{ DOWNLOAD_LICENSES : unlocks
+  PRODUCTS ||--o{ DOWNLOAD_LICENSES : for
+  DOWNLOAD_LICENSES ||--o{ DOWNLOAD_LOGS : tracks
+`);
+document.getElementById('erd').innerHTML = svg;
+document.querySelectorAll('#erd svg.erDiagram .node').forEach(node => {
+  const firstPath = node.querySelector('path[d]');
+  if (!firstPath) return;
+  const d = firstPath.getAttribute('d');
+  const nums = d.match(/-?[\d.]+/g)?.map(Number);
+  if (!nums || nums.length < 8) return;
+  const xs = [nums[0], nums[2], nums[4], nums[6]];
+  const ys = [nums[1], nums[3], nums[5], nums[7]];
+  const x = Math.min(...xs), y = Math.min(...ys);
+  const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  rect.setAttribute('x', x); rect.setAttribute('y', y);
+  rect.setAttribute('width', w); rect.setAttribute('height', h);
+  rect.setAttribute('rx', '8');
+  for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+    if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+  }
+  firstPath.replaceWith(rect);
+});
+document.querySelectorAll('#erd svg.erDiagram .row-rect-odd path, #erd svg.erDiagram .row-rect-even path').forEach(p => {
+  p.setAttribute('stroke', 'none');
+});
+</script>
