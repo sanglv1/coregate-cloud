@@ -536,18 +536,15 @@ Nếu SMTP lỗi, giao dịch vẫn thành công; lỗi chỉ log `WARN`.
 
 ---
 
-## Deploy lên Render
+## Deploy
 
-Repo có sẵn **Blueprint** [`render.yaml`](render.yaml) (Postgres + backend Docker + UI Docker).
+| Cách | Mô tả |
+|------|--------|
+| **Vercel (UI) + Render (API)** | Khuyến nghị — UI nhanh, API + Postgres + ZIP trên Render → **[docs/DEPLOY-VERCEL-RENDER.md](docs/DEPLOY-VERCEL-RENDER.md)** |
+| **Render full stack** | Postgres + backend + UI cùng Render → **[docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)** (`render.yaml`) |
+| **Render chỉ backend** | Dùng với Vercel → [`render.backend.yaml`](render.backend.yaml) |
 
-1. Push code lên GitHub/GitLab.
-2. Render Dashboard → **New** → **Blueprint** → chọn repo.
-3. Điền secret (`ADMIN_PASSWORD`, VNPAY, URL callback) khi được hỏi.
-4. Sau deploy: kiểm tra health backend, đăng nhập UI, upload ZIP catalog.
-
-Chi tiết từng bước, VNPAY, disk sản phẩm, custom domain: **[docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)**.
-
-Tham chiếu biến: [`.env.render.example`](.env.render.example).
+Tham chiếu biến Render: [`.env.render.example`](.env.render.example).
 
 ---
 

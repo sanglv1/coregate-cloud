@@ -1,10 +1,8 @@
-# Render Blueprint — CHỈ backend + Postgres (dùng kèm Vercel cho UI)
+# CoreGate Cloud — Render Blueprint
+# https://render.com/docs/blueprint-spec
 #
-# Cách dùng:
-# 1. Đổi tên file này thành render.yaml (hoặc copy nội dung vào render.yaml) rồi push GitHub
-# 2. Render Dashboard → New → Blueprint → chọn repo
-#
-# UI deploy trên Vercel — xem docs/DEPLOY-VERCEL-RENDER.md
+# Triển khai: Dashboard → New → Blueprint → chọn repo → điền biến sync: false khi được hỏi.
+# Sau deploy: cập nhật VNPAY_RETURN_URL / VNPAY_IPN_URL nếu chưa dùng URL public đúng.
 
 services:
   - type: web
@@ -44,9 +42,11 @@ services:
         fromDatabase:
           name: coregate-db
           property: password
-      # Thêm URL Vercel sau bước deploy UI (phân tách bằng dấu phẩy nếu nhiều domain)
       - key: ALLOWED_ORIGINS
-        sync: false
+        fromService:
+          type: web
+          name: coregate-ui
+          envVarKey: RENDER_EXTERNAL_URL
       - key: DOWNLOAD_PUBLIC_BASE_URL
         fromService:
           type: web
@@ -70,6 +70,23 @@ services:
         sync: false
       - key: VNPAY_IPN_URL
         sync: false
+
+  - type: web
+    name: coregate-ui
+    runtime: docker
+    dockerfilePath: coregate-ui/Dockerfile
+    dockerContext: coregate-ui
+    plan: starter
+    region: singapore
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: coregate-backend
+          envVarKey: RENDER_EXTERNAL_URL
 
 databases:
   - name: coregate-db
