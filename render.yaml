@@ -1,0 +1,96 @@
+# CoreGate Cloud — Render Blueprint
+# https://render.com/docs/blueprint-spec
+#
+# Triển khai: Dashboard → New → Blueprint → chọn repo → điền biến sync: false khi được hỏi.
+# Sau deploy: cập nhật VNPAY_RETURN_URL / VNPAY_IPN_URL nếu chưa dùng URL public đúng.
+
+services:
+  - type: web
+    name: coregate-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile
+    dockerContext: backend
+    plan: starter
+    region: singapore
+    healthCheckPath: /actuator/health
+    disk:
+      name: product-downloads
+      mountPath: /app/products
+      sizeGB: 5
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SERVER_PORT
+        value: "8080"
+      - key: DB_HOST
+        fromDatabase:
+          name: coregate-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: coregate-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: coregate-db
+          property: database
+      - key: DB_USERNAME
+        fromDatabase:
+          name: coregate-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: coregate-db
+          property: password
+      - key: ALLOWED_ORIGINS
+        fromService:
+          type: web
+          name: coregate-ui
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DOWNLOAD_PUBLIC_BASE_URL
+        fromService:
+          type: web
+          name: coregate-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DOWNLOAD_STORAGE_DIR
+        value: /app/products
+      - key: MAIL_ENABLED
+        value: "false"
+      - key: VNPAY_TIMEZONE
+        value: Asia/Ho_Chi_Minh
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: VNPAY_TMN_CODE
+        sync: false
+      - key: VNPAY_HASH_SECRET
+        sync: false
+      - key: VNPAY_RETURN_URL
+        sync: false
+      - key: VNPAY_IPN_URL
+        sync: false
+
+  - type: web
+    name: coregate-ui
+    runtime: docker
+    dockerfilePath: coregate-ui/Dockerfile
+    dockerContext: coregate-ui
+    plan: starter
+    region: singapore
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: coregate-backend
+          envVarKey: RENDER_EXTERNAL_URL
+
+databases:
+  - name: coregate-db
+    plan: basic
+    region: singapore
+    databaseName: coregate
+    user: coregate

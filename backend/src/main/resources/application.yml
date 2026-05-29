@@ -9,7 +9,8 @@ spring:
       max-file-size: ${UPLOAD_MAX_FILE_SIZE:200MB}
       max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:200MB}
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/coregate}
+    # DB_URL trực tiếp, hoặc ghép từ DB_HOST/DB_PORT/DB_NAME (Render Blueprint)
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:coregate}}
     username: ${DB_USERNAME:coregate}
     password: ${DB_PASSWORD:coregate}
   jpa:

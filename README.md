@@ -25,6 +25,7 @@ Dự án hướng tới môi trường **gần production** (Docker Compose, Fly
 - [Catalog sản phẩm](#catalog-sản-phẩm)
 - [Cấu hình VNPAY Sandbox](#cấu-hình-vnpay-sandbox)
 - [Email thông báo](#email-thông-báo)
+- [Deploy lên Render](#deploy-lên-render)
 - [Xử lý sự cố](#xử-lý-sự-cố)
 - [Hạn chế / roadmap](#hạn-chế--roadmap)
 
@@ -532,6 +533,21 @@ MAIL_FROM=no-reply@yourdomain.com
 Khi order hoàn tất, backend gửi email chứa **mã truy cập** (`sendDownloadAccessCode`). Cần `customerEmail` hợp lệ lúc tạo order.
 
 Nếu SMTP lỗi, giao dịch vẫn thành công; lỗi chỉ log `WARN`.
+
+---
+
+## Deploy lên Render
+
+Repo có sẵn **Blueprint** [`render.yaml`](render.yaml) (Postgres + backend Docker + UI Docker).
+
+1. Push code lên GitHub/GitLab.
+2. Render Dashboard → **New** → **Blueprint** → chọn repo.
+3. Điền secret (`ADMIN_PASSWORD`, VNPAY, URL callback) khi được hỏi.
+4. Sau deploy: kiểm tra health backend, đăng nhập UI, upload ZIP catalog.
+
+Chi tiết từng bước, VNPAY, disk sản phẩm, custom domain: **[docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)**.
+
+Tham chiếu biến: [`.env.render.example`](.env.render.example).
 
 ---
 
