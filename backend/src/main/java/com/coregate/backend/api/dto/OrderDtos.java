@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,7 +32,30 @@ public class OrderDtos {
         String status,
         Long totalAmount,
         String currency,
+        Instant createdAt,
+        Instant updatedAt,
         List<OrderItemResponse> items
+    ) {}
+
+    public record OrderSummaryResponse(
+        UUID id,
+        String customerEmail,
+        String status,
+        Long totalAmount,
+        String currency,
+        Instant createdAt,
+        String paymentStatus,
+        String txnRef,
+        int itemCount
+    ) {}
+
+    public record OrderListResponse(List<OrderSummaryResponse> orders) {}
+
+    public record OrderDetailResponse(
+        OrderResponse order,
+        String paymentStatus,
+        String txnRef,
+        String paymentProvider
     ) {}
 
     public record CreateOrderResponse(List<OrderResponse> orders) {}

@@ -1,37 +1,61 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { PageShell } from '@/components/layout/page-shell';
 import { useToast } from '@/hooks/use-toast';
 import { useCart } from '@/lib/hooks/useCart';
-import { CatalogProduct, DEFAULT_PRODUCTS, PRODUCT_CATEGORIES, loadCatalogProducts } from '@/lib/catalog';
+import {
+  CatalogProduct,
+  DEFAULT_PRODUCTS,
+  PRODUCT_CATEGORIES,
+  loadCatalogProducts,
+  productDetailPath,
+} from '@/lib/catalog';
+import { ShoppingCart, Sparkles } from 'lucide-react';
 
 const PROJECT_INTRO = [
-  'CoreGate Cloud la du an marketplace cho san pham source code cong nghe.',
-  'Tap trung vao cac bo source code Java Spring Boot tich hop VNPAY de ban co the trien khai nhanh.',
-  'Moi goi deu kem demo flow ro rang, phu hop hoc tap, PoC va tich hop vao du an thuc te.',
+  'CoreGate Cloud là marketplace source code đa ngành công nghệ.',
+  'Java, PHP, .NET, Node.js, Python — API, admin, e-commerce, SaaS và nhiều lĩnh vực khác.',
+  'Mỗi gói kèm README, hướng dẫn cài đặt và file ZIP giao tự động sau thanh toán.',
 ];
 
-export default function BrowsePage() {
+function BrowseContent() {
+  const searchParams = useSearchParams();
+  const initialQ = searchParams.get('q') ?? '';
+  const initialCategory = searchParams.get('category') ?? 'all';
   const { addItem, count } = useCart();
   const { toast } = useToast();
   const [products, setProducts] = useState<CatalogProduct[]>(DEFAULT_PRODUCTS);
-  const [category, setCategory] = useState('all');
+  const [category, setCategory] = useState(
+    PRODUCT_CATEGORIES.includes(initialCategory) ? initialCategory : 'all',
+  );
   const [sortBy, setSortBy] = useState<'latest' | 'price_asc' | 'price_desc' | 'downloads'>('latest');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialQ);
 
   useEffect(() => {
     setProducts(loadCatalogProducts());
   }, []);
 
+  useEffect(() => {
+    setSearch(initialQ);
+  }, [initialQ]);
+
+  useEffect(() => {
+    setCategory(PRODUCT_CATEGORIES.includes(initialCategory) ? initialCategory : 'all');
+  }, [initialCategory]);
+
   const filteredProducts = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
     const base = products.filter((product) => {
       const matchCategory = category === 'all' || product.category === category;
-      const matchSearch = normalizedSearch.length === 0
-        || product.name.toLowerCase().includes(normalizedSearch)
-        || product.description.toLowerCase().includes(normalizedSearch);
+      const matchSearch =
+        normalizedSearch.length === 0 ||
+        product.name.toLowerCase().includes(normalizedSearch) ||
+        product.description.toLowerCase().includes(normalizedSearch) ||
+        product.id.toLowerCase().includes(normalizedSearch);
       return matchCategory && matchSearch;
     });
 
@@ -50,95 +74,125 @@ export default function BrowsePage() {
       quantity: 1,
     });
     toast({
-      title: 'Added to cart',
-      description: `${product.name} has been added.`,
+      title: 'Đã thêm vào giỏ',
+      description: `${product.name}`,
     });
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <nav className="border-b border-border/40 bg-background sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="font-semibold">CoreGate Cloud</Link>
-          <div className="flex items-center gap-3">
-            <Link href="/dashboard">
-              <Button variant="outline" size="sm">Dashboard</Button>
-            </Link>
-            <Link href="/checkout">
-              <Button size="sm">
-                Cart ({count})
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-        <div className="space-y-2">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Danh muc san pham
+    <PageShell mainClassName="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 space-y-12 w-full">
+        <div className="text-center max-w-2xl mx-auto space-y-4">
+          <p className="section-label inline-flex items-center gap-2 justify-center">
+            <Sparkles className="h-3.5 w-3.5" />
+            Danh mục sản phẩm
           </p>
-          <h1 className="text-3xl font-bold">Source Code</h1>
-          <p className="text-muted-foreground">Chon goi source code phu hop va tiep tuc thanh toan.</p>
+          <h1 className="font-display text-4xl md:text-5xl font-bold">
+            Danh Mục <span className="brand-text-gradient">Source Code</span>
+          </h1>
+          <p className="text-muted-foreground">Lọc theo ngôn ngữ, lĩnh vực — mua và tải source ngay sau thanh toán.</p>
+          <Link href="/checkout">
+            <Button className="gap-2 brand-gradient rounded-full border-0">
+              <ShoppingCart className="h-4 w-4" />
+              Giỏ hàng ({count})
+            </Button>
+          </Link>
         </div>
 
-        <section className="rounded-xl border border-border/50 bg-card p-6">
-          <h2 className="text-xl font-semibold mb-3">Gioi thieu du an</h2>
-          <div className="space-y-2 text-sm text-muted-foreground">
+        <section className="glass-card p-6 md:p-8">
+          <h2 className="font-display text-xl font-semibold mb-4">Giới thiệu dự án</h2>
+          <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
             {PROJECT_INTRO.map((line) => (
               <p key={line}>{line}</p>
             ))}
           </div>
         </section>
 
-        <section className="rounded-xl border border-border/50 bg-card p-5 grid grid-cols-1 md:grid-cols-4 gap-3">
+        <section className="glass-card p-5 grid grid-cols-1 md:grid-cols-4 gap-3">
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tim theo ten source code..."
-            className="md:col-span-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
+            placeholder="Tìm theo tên, mô tả, ID..."
+            className="md:col-span-2 rounded-xl border border-white/15 bg-background/80 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
           />
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value)}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            className="rounded-xl border border-white/15 bg-background/80 px-4 py-2.5 text-sm"
           >
-            <option value="all">Tat ca danh muc</option>
+            <option value="all">Tất cả danh mục</option>
             {PRODUCT_CATEGORIES.map((item) => (
-              <option key={item} value={item}>{item}</option>
+              <option key={item} value={item}>
+                {item}
+              </option>
             ))}
           </select>
           <select
             value={sortBy}
-            onChange={(event) => setSortBy(event.target.value as 'latest' | 'price_asc' | 'price_desc' | 'downloads')}
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            onChange={(event) =>
+              setSortBy(event.target.value as 'latest' | 'price_asc' | 'price_desc' | 'downloads')
+            }
+            className="rounded-xl border border-white/15 bg-background/80 px-4 py-2.5 text-sm"
           >
-            <option value="latest">Sap xep mac dinh</option>
-            <option value="downloads">Luot tai giam dan</option>
-            <option value="price_asc">Gia tang dan</option>
-            <option value="price_desc">Gia giam dan</option>
+            <option value="latest">Sắp xếp mặc định</option>
+            <option value="downloads">Lượt tải giảm dần</option>
+            <option value="price_asc">Giá tăng dần</option>
+            <option value="price_desc">Giá giảm dần</option>
           </select>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((product) => (
-            <article key={product.id} className="rounded-xl border border-border/50 bg-card p-5 space-y-4">
-              <div>
-                <h2 className="font-semibold text-lg leading-snug">{product.name}</h2>
-                <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
-                <p className="text-xs text-muted-foreground mt-2">File: {product.archiveFile}</p>
+            <article
+              key={product.id}
+              className="glass-card p-6 flex flex-col gap-4 hover:border-primary/30 transition-colors group"
+            >
+              {product.featured && (
+                <span className="text-xs font-medium text-primary uppercase tracking-wider">Nổi bật</span>
+              )}
+              <div className="flex-1 space-y-2">
+                <h2 className="font-display text-xl font-semibold group-hover:text-primary transition-colors">
+                  {product.name}
+                </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+                <p className="text-xs text-muted-foreground/80 font-mono">📦 {product.archiveFile}</p>
               </div>
-              <div className="flex items-center justify-between">
-                <p className="text-xl font-bold">₫{product.price.toLocaleString()}</p>
-                <span className="text-xs text-muted-foreground">{product.downloads} luot tai</span>
+              <div className="flex items-end justify-between border-t border-white/10 pt-4">
+                <div>
+                  <p className="text-2xl font-bold brand-text-gradient">₫{product.price.toLocaleString('vi-VN')}</p>
+                  <span className="text-xs text-muted-foreground">{product.downloads} lượt tải</span>
+                </div>
               </div>
-              <Button onClick={() => handleAddToCart(product)} className="w-full">
-                Add to Cart
-              </Button>
+              <div className="flex gap-2">
+                <Link href={productDetailPath(product.id)} className="flex-1">
+                  <Button variant="outline" className="w-full border-white/15" size="sm">
+                    Chi tiết
+                  </Button>
+                </Link>
+                <Button
+                  onClick={() => handleAddToCart(product)}
+                  className="flex-1 brand-gradient rounded-xl border-0"
+                  size="sm"
+                >
+                  Thêm giỏ
+                </Button>
+              </div>
             </article>
           ))}
         </div>
-      </main>
-    </div>
+
+        {filteredProducts.length === 0 && (
+          <p className="text-center text-muted-foreground py-12">Không tìm thấy sản phẩm phù hợp.</p>
+        )}
+    </PageShell>
+  );
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense
+      fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Đang tải...</div>}
+    >
+      <BrowseContent />
+    </Suspense>
   );
 }

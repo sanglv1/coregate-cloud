@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 40" fill="none" role="img" aria-label="CoreGate Cloud">
+  <circle cx="20" cy="20" r="20" fill="#2f2a4a"/>
+  <circle cx="20" cy="20" r="19" stroke="#5b4f8a" stroke-width="0.6" opacity="0.5"/>
+  <text
+    x="20"
+    y="21"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    fill="#ebe6f8"
+    font-family="ui-sans-serif, system-ui, sans-serif"
+    font-size="13"
+    font-weight="700"
+    letter-spacing="-0.05em"
+  >CG</text>
+  <text
+    x="48"
+    y="25"
+    fill="#ffffff"
+    font-family="Georgia, 'Times New Roman', ui-serif, serif"
+    font-size="21"
+    font-weight="400"
+  >CoreGate Cloud</text>
+</svg>

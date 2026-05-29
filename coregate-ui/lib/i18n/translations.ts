@@ -28,7 +28,7 @@ export const translations = {
 
     // Home Page
     sellDigitalProducts: 'Sell Digital Products with Confidence',
-    marketplaceDescription: 'CoreGate Cloud is a modern marketplace platform for digital products. Sell your work, reach customers worldwide, and get paid instantly with secure VNPAY integration.',
+    marketplaceDescription: 'CoreGate Cloud is a multi-stack source code marketplace. Sell your work, reach customers, and get paid with secure online checkout.',
     startSelling: 'Start Selling',
     browseProducts: 'Browse Products',
     productsListed: 'Products Listed',
@@ -37,7 +37,7 @@ export const translations = {
     everythingYouNeed: 'Everything You Need',
     completeDescription: 'A complete solution for selling digital products with all the tools you need',
     securePayments: 'Secure Payments',
-    securePaymentsDesc: 'VNPAY integration ensures secure transactions and instant payouts for your sales',
+    securePaymentsDesc: 'Secure checkout ensures safe transactions and automated delivery after purchase',
     lightningFast: 'Lightning Fast',
     lightningFastDesc: 'Optimized for speed with instant downloads and seamless user experience',
     globalReach: 'Global Reach',
@@ -121,7 +121,7 @@ export const translations = {
     tax: 'Tax',
     total: 'Total',
     proceedToPayment: 'Proceed to Payment',
-    redirectVNPAY: 'You will be redirected to VNPAY for secure payment',
+    redirectVNPAY: 'You will be redirected to the payment gateway for secure checkout',
     continueShopping: 'Continue Shopping',
 
     // Payment
@@ -171,7 +171,7 @@ export const translations = {
 
     // Home Page
     sellDigitalProducts: 'Bán Sản Phẩm Kỹ Thuật Số Với Tự Tin',
-    marketplaceDescription: 'CoreGate Cloud là một nền tảng thị trường hiện đại cho các sản phẩm kỹ thuật số. Bán tác phẩm của bạn, tiếp cận khách hàng trên toàn thế giới và nhận tiền ngay lập tức với tích hợp VNPAY an toàn.',
+    marketplaceDescription: 'CoreGate Cloud là marketplace source code đa ngành công nghệ. Bán sản phẩm của bạn, tiếp cận khách hàng và nhận thanh toán an toàn.',
     startSelling: 'Bắt Đầu Bán',
     browseProducts: 'Duyệt Sản Phẩm',
     productsListed: 'Sản Phẩm Được Liệt Kê',
@@ -180,7 +180,7 @@ export const translations = {
     everythingYouNeed: 'Mọi Thứ Bạn Cần',
     completeDescription: 'Một giải pháp hoàn chỉnh để bán các sản phẩm kỹ thuật số với tất cả các công cụ bạn cần',
     securePayments: 'Thanh Toán An Toàn',
-    securePaymentsDesc: 'Tích hợp VNPAY đảm bảo giao dịch an toàn và thanh toán ngay lập tức cho bán hàng của bạn',
+    securePaymentsDesc: 'Thanh toán trực tuyến an toàn và giao file tự động sau khi mua hàng',
     lightningFast: 'Cực Nhanh',
     lightningFastDesc: 'Được tối ưu hóa cho tốc độ với tải xuống ngay lập tức và trải nghiệm người dùng liền mạch',
     globalReach: 'Phạm Vi Toàn Cầu',
@@ -264,7 +264,7 @@ export const translations = {
     tax: 'Thuế',
     total: 'Tổng Cộng',
     proceedToPayment: 'Tiến Hành Thanh Toán',
-    redirectVNPAY: 'Bạn sẽ được chuyển hướng đến VNPAY để thanh toán an toàn',
+    redirectVNPAY: 'Bạn sẽ được chuyển hướng đến cổng thanh toán an toàn',
     continueShopping: 'Tiếp Tục Mua Sắm',
 
     // Payment

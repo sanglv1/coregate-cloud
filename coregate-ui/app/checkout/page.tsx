@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { PageShell } from '@/components/layout/page-shell';
 import { useCart } from '@/lib/hooks/useCart';
 import { useRequireAuth } from '@/lib/hooks/useAuth';
 import { buildApiUrl } from '@/lib/config';
@@ -28,7 +29,6 @@ export default function CheckoutPage() {
     setProcessingPayment(true);
 
     try {
-      // Create order
       const orderResponse = await fetch(buildApiUrl('/api/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,8 +45,8 @@ export default function CheckoutPage() {
         const error = await orderResponse.json();
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: error.error || 'Failed to create order',
+          title: 'Lỗi',
+          description: error.error || 'Không tạo được đơn hàng',
         });
         setProcessingPayment(false);
         return;
@@ -55,7 +55,6 @@ export default function CheckoutPage() {
       const orderData = await orderResponse.json();
       const order = orderData.orders[0];
 
-      // Create VNPAY payment
       const paymentResponse = await fetch(buildApiUrl('/api/payments/vnpay'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,157 +70,120 @@ export default function CheckoutPage() {
         const error = await paymentResponse.json();
         toast({
           variant: 'destructive',
-          title: 'Error',
-          description: error.error || 'Failed to initiate payment',
+          title: 'Lỗi',
+          description: error.error || 'Không khởi tạo được thanh toán',
         });
         setProcessingPayment(false);
         return;
       }
 
       const paymentData = await paymentResponse.json();
-      
-      // Clear cart and redirect to VNPAY
       clearCart();
       window.location.href = paymentData.paymentUrl;
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Something went wrong',
+        title: 'Lỗi',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi',
       });
       setProcessingPayment(false);
     }
   }
 
   if (authLoading || cartLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <PageShell showFooter={false} centered><p className="text-muted-foreground">Đang tải...</p></PageShell>;
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <nav className="border-b border-border/40 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">C</span>
-            </div>
-            <span className="font-bold text-lg">CoreGate Cloud</span>
-          </Link>
-        </div>
-      </nav>
+    <PageShell mainClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+      <Link href="/browse" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
+        <ArrowLeft className="w-4 h-4" />
+        Tiếp tục mua sắm
+      </Link>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <Link href="/browse" className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8">
-          <ArrowLeft className="w-4 h-4" />
-          Continue Shopping
-        </Link>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Order Summary */}
-          <div className="lg:col-span-2">
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold mb-2">Checkout</h1>
-                <p className="text-muted-foreground">Review your items before payment</p>
-              </div>
-
-              {items.length === 0 ? (
-                <div className="text-center py-12 border border-dashed border-border/40 rounded-lg">
-                  <p className="text-muted-foreground mb-4">Your cart is empty</p>
-                  <Link href="/browse">
-                    <Button className="bg-primary hover:bg-primary/90">Browse Products</Button>
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {items.map((item) => (
-                    <div
-                      key={item.productId}
-                      className="flex items-center justify-between p-4 rounded-lg border border-border/40 bg-card/50"
-                    >
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{item.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Quantity: {item.quantity} × ₫{item.price.toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <p className="font-semibold">
-                          ₫{(item.price * item.quantity).toLocaleString()}
-                        </p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeItem(item.productId)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div>
+            <p className="section-label mb-2">Thanh toán</p>
+            <h1 className="font-display text-3xl font-semibold text-white">Giỏ hàng</h1>
+            <p className="text-muted-foreground mt-1">Kiểm tra sản phẩm trước khi thanh toán</p>
           </div>
 
-          {/* Order Total */}
-          <div className="lg:col-span-1">
-            <div className="p-6 rounded-lg border border-border/40 bg-card/50 sticky top-20 space-y-4">
-              <h2 className="text-lg font-semibold">Order Summary</h2>
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground">Email nhan link download</label>
-                <input
-                  type="email"
-                  value={customerEmail}
-                  onChange={(event) => setCustomerEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
-                  required
-                />
-              </div>
-
-              <div className="space-y-2 pt-4 border-t border-border/40">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span>₫{total.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>₫0</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span>₫0</span>
-                </div>
-              </div>
-
-              <div className="flex justify-between text-lg font-bold pt-4 border-t border-border/40">
-                <span>Total</span>
-                <span>₫{total.toLocaleString()}</span>
-              </div>
-
-              <Button
-                onClick={handleCheckout}
-                disabled={processingPayment || items.length === 0 || !customerEmail}
-                className="w-full bg-primary hover:bg-primary/90"
-              >
-                {processingPayment ? 'Processing...' : 'Proceed to Payment'}
-              </Button>
-
-              <p className="text-xs text-muted-foreground text-center">
-                You will be redirected to VNPAY for secure payment
-              </p>
+          {items.length === 0 ? (
+            <div className="ts-card text-center py-12">
+              <p className="text-muted-foreground mb-4">Giỏ hàng trống</p>
+              <Link href="/browse">
+                <Button className="brand-gradient rounded-full border-0">Xem sản phẩm</Button>
+              </Link>
             </div>
+          ) : (
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div key={item.productId} className="ts-card p-4 flex items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-white truncate">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      SL: {item.quantity} × ₫{item.price.toLocaleString('vi-VN')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <p className="font-semibold brand-text-gradient">
+                      ₫{(item.price * item.quantity).toLocaleString('vi-VN')}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeItem(item.productId)}
+                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="lg:col-span-1">
+          <div className="ts-card-highlight p-6 sticky top-24 space-y-4">
+            <h2 className="font-display text-lg font-semibold text-white">Tóm tắt đơn</h2>
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Email nhận mã tải source</label>
+              <input
+                type="email"
+                value={customerEmail}
+                onChange={(event) => setCustomerEmail(event.target.value)}
+                placeholder="ban@email.com"
+                className="field-input"
+                required
+              />
+            </div>
+            <div className="space-y-2 pt-2 border-t border-white/10 text-sm">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Tạm tính</span>
+                <span>₫{total.toLocaleString('vi-VN')}</span>
+              </div>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Phí vận chuyển</span>
+                <span>₫0</span>
+              </div>
+            </div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
+              <span>Tổng</span>
+              <span className="brand-text-gradient">₫{total.toLocaleString('vi-VN')}</span>
+            </div>
+            <Button
+              onClick={handleCheckout}
+              disabled={processingPayment || items.length === 0 || !customerEmail}
+              className="w-full brand-gradient rounded-xl border-0"
+            >
+              {processingPayment ? 'Đang xử lý...' : 'Thanh toán ngay'}
+            </Button>
+            <p className="text-xs text-muted-foreground text-center">Bạn sẽ được chuyển sang cổng thanh toán an toàn</p>
           </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

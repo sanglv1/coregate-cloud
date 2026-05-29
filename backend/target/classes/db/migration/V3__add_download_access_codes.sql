@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS download_access_codes (
+    id UUID PRIMARY KEY,
+    order_id UUID NOT NULL UNIQUE REFERENCES orders(id) ON DELETE CASCADE,
+    access_code VARCHAR(32) NOT NULL UNIQUE,
+    email VARCHAR(255),
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

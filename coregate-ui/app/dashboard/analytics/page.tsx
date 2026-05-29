@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { PageShell } from '@/components/layout/page-shell';
+import { DashboardNav } from '@/components/layout/dashboard-nav';
 import { clearSession, useRequireRole } from '@/lib/hooks/useAuth';
 import { buildApiUrl } from '@/lib/config';
 import { useLanguage } from '@/lib/hooks/useLanguage';
@@ -122,79 +123,39 @@ export default function AnalyticsDashboard() {
   }
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-muted-foreground">{ui.loading}</div>
-      </div>
-    );
+    return <PageShell showFooter={false} centered><p className="text-muted-foreground">{ui.loading}</p></PageShell>;
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      {/* Header */}
-      <nav className="border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">C</span>
+    <PageShell mainClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+      <DashboardNav />
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+          <div>
+            <p className="section-label mb-2">Seller</p>
+            <h1 className="font-display text-3xl md:text-4xl font-semibold text-white">{ui.pageTitle}</h1>
+            <p className="text-muted-foreground mt-1">{ui.pageDesc}</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex rounded-lg border border-white/10 overflow-hidden text-xs">
+              <button type="button" className={`px-2.5 py-1.5 ${isVi ? 'bg-white/10 text-white' : 'text-muted-foreground'}`} onClick={() => setLanguage('vi')}>VI</button>
+              <button type="button" className={`px-2.5 py-1.5 ${!isVi ? 'bg-white/10 text-white' : 'text-muted-foreground'}`} onClick={() => setLanguage('en')}>EN</button>
             </div>
-            <span className="font-bold text-lg">CoreGate Cloud</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center rounded-md border border-border/40 overflow-hidden">
-              <button
-                className={`px-3 py-1 text-xs ${isVi ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                onClick={() => setLanguage('vi')}
-              >
-                VI
-              </button>
-              <button
-                className={`px-3 py-1 text-xs ${!isVi ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
-                onClick={() => setLanguage('en')}
-              >
-                EN
-              </button>
-            </div>
-            <span className="text-sm text-muted-foreground">
-              {session?.user.name || session?.user.username}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2"
-            >
+            <Button variant="ghost" size="sm" onClick={handleLogout} className="gap-2 text-muted-foreground hover:text-white">
               <LogOut className="w-4 h-4" />
               {ui.logout}
             </Button>
           </div>
         </div>
-      </nav>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">{ui.pageTitle}</h1>
-              <p className="text-muted-foreground">{ui.pageDesc}</p>
-            </div>
-            <Link href="/dashboard">
-              <Button variant="outline" className="border-border">
-                {ui.backToDashboard}
-              </Button>
-            </Link>
-          </div>
-
-          {/* Date Range */}
-          <div className="flex flex-wrap items-end gap-4 rounded-lg border border-border/40 bg-card/40 p-4">
+          <div className="flex flex-wrap items-end gap-4 ts-card p-4">
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground">{ui.dateFrom}</label>
               <input
                 type="date"
                 value={dateRange.startDate}
                 onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-                className="px-4 py-2 rounded-lg bg-background border border-border text-foreground"
+                className="field-input w-auto"
               />
             </div>
             <div className="space-y-1">
@@ -203,7 +164,7 @@ export default function AnalyticsDashboard() {
                 type="date"
                 value={dateRange.endDate}
                 onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-                className="px-4 py-2 rounded-lg bg-background border border-border text-foreground"
+                className="field-input w-auto"
               />
             </div>
           </div>
@@ -212,9 +173,9 @@ export default function AnalyticsDashboard() {
         {/* Stats */}
         {summary && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="p-6 rounded-lg border border-border/40 bg-card/50">
+            <div className="ts-card p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                   <DollarSign className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -224,9 +185,9 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
 
-            <div className="p-6 rounded-lg border border-border/40 bg-card/50">
+            <div className="ts-card p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                   <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -236,9 +197,9 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
 
-            <div className="p-6 rounded-lg border border-border/40 bg-card/50">
+            <div className="ts-card p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                   <Download className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -248,9 +209,9 @@ export default function AnalyticsDashboard() {
               </div>
             </div>
 
-            <div className="p-6 rounded-lg border border-border/40 bg-card/50">
+            <div className="ts-card p-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                   <Eye className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -265,8 +226,8 @@ export default function AnalyticsDashboard() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Revenue Chart */}
-          <div className="p-6 rounded-lg border border-border/40 bg-card/50">
-            <h3 className="text-lg font-semibold mb-4">{ui.revenueTrend}</h3>
+          <div className="ts-card p-6">
+            <h3 className="font-display text-lg font-semibold text-white mb-4">{ui.revenueTrend}</h3>
             {analytics.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={analytics}>
@@ -275,9 +236,10 @@ export default function AnalyticsDashboard() {
                   <YAxis stroke="hsl(var(--muted-foreground))" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '0.5rem',
+                      backgroundColor: '#050505',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '0.75rem',
+                      color: '#f4f4f8',
                     }}
                   />
                   <Legend />
@@ -292,8 +254,8 @@ export default function AnalyticsDashboard() {
           </div>
 
           {/* Downloads Chart */}
-          <div className="p-6 rounded-lg border border-border/40 bg-card/50">
-            <h3 className="text-lg font-semibold mb-4">{ui.downloadTrend}</h3>
+          <div className="ts-card p-6">
+            <h3 className="font-display text-lg font-semibold text-white mb-4">{ui.downloadTrend}</h3>
             {analytics.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={analytics}>
@@ -302,9 +264,10 @@ export default function AnalyticsDashboard() {
                   <YAxis stroke="hsl(var(--muted-foreground))" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--background))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '0.5rem',
+                      backgroundColor: '#050505',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '0.75rem',
+                      color: '#f4f4f8',
                     }}
                   />
                   <Legend />
@@ -318,7 +281,6 @@ export default function AnalyticsDashboard() {
             )}
           </div>
         </div>
-      </div>
-    </div>
+    </PageShell>
   );
 }

@@ -4,8 +4,9 @@ import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { PageShell } from '@/components/layout/page-shell';
 import { buildApiUrl } from '@/lib/config';
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, Copy, XCircle } from 'lucide-react';
 
 interface DownloadItem {
   productId: string;
@@ -38,13 +39,9 @@ function PaymentCallbackContent() {
           const verifyResponse = await fetch(buildApiUrl(`/api/payments/vnpay/return-verify?${callbackQuery}`));
           if (verifyResponse.ok) {
             const result = await verifyResponse.json();
-            if (result.orderId) {
-              setResolvedOrderId(result.orderId);
-            }
+            if (result.orderId) setResolvedOrderId(result.orderId);
             if (result.success) {
-              if (result.orderId) {
-                await loadAccessCode(result.orderId);
-              }
+              if (result.orderId) await loadAccessCode(result.orderId);
               setPaymentStatus('success');
               return;
             }
@@ -57,38 +54,28 @@ function PaymentCallbackContent() {
           return;
         }
 
-        // Fallback polling in case IPN updates backend slightly later.
         const maxAttempts = 8;
         for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-          if (attempt > 0) {
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-          }
-
+          if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 2000));
           const response = await fetch(buildApiUrl(`/api/orders/${idToCheck}`));
-          if (!response.ok) {
-            continue;
-          }
-
+          if (!response.ok) continue;
           const order = await response.json();
           if (order.status === 'completed') {
             await loadAccessCode(idToCheck);
             setPaymentStatus('success');
             return;
           }
-
           if (order.status === 'failed') {
             setPaymentStatus('failed');
             return;
           }
         }
-
         setPaymentStatus('failed');
       } catch (error) {
         console.error('Failed to verify payment:', error);
         setPaymentStatus('failed');
       }
     }
-
     verifyPayment();
   }, [callbackQuery, hasVnpReturn, orderId, resolvedOrderId]);
 
@@ -109,124 +96,92 @@ function PaymentCallbackContent() {
 
   if (paymentStatus === 'loading') {
     return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+      <PageShell showFooter={false} centered>
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto animate-spin">
-            <div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent"></div>
-          </div>
-          <p className="text-muted-foreground">Verifying your payment...</p>
+          <div className="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin mx-auto" />
+          <p className="text-muted-foreground">Đang xác minh thanh toán...</p>
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4">
-      <div className="text-center space-y-8 max-w-md">
+    <PageShell centered mainClassName="px-4 py-12">
+      <div className="w-full max-w-lg text-center space-y-8">
         {paymentStatus === 'success' ? (
           <>
-            <div className="flex justify-center">
-              <CheckCircle className="w-24 h-24 text-green-500" />
-            </div>
+            <CheckCircle className="w-20 h-20 text-emerald-400 mx-auto" />
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold">Payment Successful!</h1>
-              <p className="text-lg text-muted-foreground">
-                Your order has been confirmed
-              </p>
+              <h1 className="font-display text-3xl font-semibold text-white">Thanh toán thành công</h1>
+              <p className="text-muted-foreground">Đơn hàng của bạn đã được xác nhận</p>
             </div>
-            <div className="space-y-3 pt-4">
-              <p className="text-sm text-muted-foreground">
-                Order ID: <span className="font-mono text-foreground">{resolvedOrderId || orderId}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Ban se nhan ma tai source code qua email va co the nhap ma de tai.
+            <div className="ts-card p-5 text-left space-y-4 text-sm">
+              <p className="text-muted-foreground">
+                Mã đơn: <span className="font-mono text-white">{resolvedOrderId || orderId}</span>
               </p>
               {accessCode && (
-                <div className="rounded-lg border border-border/40 bg-card/50 p-3 text-left space-y-2">
-                  <p className="text-xs text-muted-foreground">Ma nhan source code:</p>
-                  <p className="font-mono text-sm">{accessCode.accessCode}</p>
-                  <p className="text-xs text-muted-foreground">Han den: {accessCode.expiresAt}</p>
+                <div className="ts-card-highlight p-4 space-y-2">
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Mã nhận source code</p>
+                  <p className="font-mono text-lg text-primary">{accessCode.accessCode}</p>
+                  <p className="text-xs text-muted-foreground">Hết hạn: {new Date(accessCode.expiresAt).toLocaleString('vi-VN')}</p>
                 </div>
               )}
               {downloads.length > 0 && (
-                <div className="rounded-lg border border-border/40 bg-card/50 p-3 text-left space-y-2">
-                  <p className="text-xs text-muted-foreground">Hoac nhap ma de tai tai:</p>
-                  <Link href="/download-redeem" className="block text-sm text-primary underline">
-                    /download-redeem
-                  </Link>
-                </div>
-              )}
-              {downloads.length > 0 && (
-                <div className="rounded-lg border border-border/40 bg-card/50 p-3 text-left space-y-2">
-                  <p className="text-xs text-muted-foreground">Link tai (du phong):</p>
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Link tải trực tiếp:</p>
                   {downloads.map((item) => (
-                    <a key={item.productId} href={item.downloadUrl} className="block text-sm text-primary underline">
+                    <a
+                      key={item.productId}
+                      href={item.downloadUrl}
+                      className="block rounded-lg border border-border bg-card/60 px-4 py-2.5 text-primary/90 hover:border-primary/25"
+                    >
                       {item.fileName}
                     </a>
                   ))}
                 </div>
               )}
-            </div>
-            <div className="flex flex-col gap-3 pt-8">
-              <Link href="/dashboard">
-                <Button className="w-full bg-primary hover:bg-primary/90">
-                  Go to Dashboard
-                </Button>
+              <Link href="/download-redeem" className="inline-flex items-center gap-1 text-primary hover:underline">
+                <Copy className="h-3.5 w-3.5" />
+                Hoặc nhập mã tại trang redeem
               </Link>
+            </div>
+            <div className="flex flex-col gap-3">
               <Link href="/browse">
-                <Button variant="outline" className="w-full border-border">
-                  Continue Shopping
-                </Button>
+                <Button className="w-full brand-gradient rounded-xl border-0">Tiếp tục mua sắm</Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="outline" className="w-full btn-outline-dark rounded-xl">Dashboard</Button>
               </Link>
             </div>
           </>
         ) : (
           <>
-            <div className="flex justify-center">
-              <XCircle className="w-24 h-24 text-destructive" />
-            </div>
+            <XCircle className="w-20 h-20 text-red-400 mx-auto" />
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold">Payment Failed</h1>
-              <p className="text-lg text-muted-foreground">
-                There was an issue processing your payment
-              </p>
+              <h1 className="font-display text-3xl font-semibold text-white">Thanh toán thất bại</h1>
+              <p className="text-muted-foreground">Không xác nhận được giao dịch. Vui lòng thử lại.</p>
             </div>
-            <div className="space-y-3 pt-4">
-              <p className="text-sm text-muted-foreground">
-                Order ID: <span className="font-mono text-foreground">{resolvedOrderId || orderId}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Please try again or contact support
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 pt-8">
+            {resolvedOrderId || orderId ? (
+              <p className="text-sm text-muted-foreground font-mono">{resolvedOrderId || orderId}</p>
+            ) : null}
+            <div className="flex flex-col gap-3">
               <Link href="/checkout">
-                <Button className="w-full bg-primary hover:bg-primary/90">
-                  Try Again
-                </Button>
+                <Button className="w-full brand-gradient rounded-xl border-0">Thử lại</Button>
               </Link>
               <Link href="/browse">
-                <Button variant="outline" className="w-full border-border">
-                  Continue Shopping
-                </Button>
+                <Button variant="outline" className="w-full btn-outline-dark rounded-xl">Về cửa hàng</Button>
               </Link>
             </div>
           </>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }
 
 export default function PaymentCallbackPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
-          <div className="text-muted-foreground">Loading payment status...</div>
-        </div>
-      }
-    >
+    <Suspense fallback={<PageShell showFooter={false} centered><p className="text-muted-foreground">Đang tải...</p></PageShell>}>
       <PaymentCallbackContent />
     </Suspense>
   );

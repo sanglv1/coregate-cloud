@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: coregate-backend
+  servlet:
+    multipart:
+      max-file-size: ${UPLOAD_MAX_FILE_SIZE:200MB}
+      max-request-size: ${UPLOAD_MAX_REQUEST_SIZE:200MB}
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/coregate}
     username: ${DB_USERNAME:coregate}
@@ -52,6 +56,8 @@ app:
   download:
     public-base-url: ${DOWNLOAD_PUBLIC_BASE_URL:http://localhost:8080}
     storage-dir: ${DOWNLOAD_STORAGE_DIR:./assets/products}
+  upload:
+    max-bytes: ${UPLOAD_MAX_BYTES:209715200}
   vnpay:
     tmn-code: ${VNPAY_TMN_CODE:}
     hash-secret: ${VNPAY_HASH_SECRET:}

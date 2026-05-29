@@ -24,13 +24,13 @@ services:
     build:
       context: ./backend
     volumes:
-      - ${DOWNLOAD_HOST_DIR:-./assets/products}:/app/products:ro
+      - ${DOWNLOAD_HOST_DIR:-./assets/products}:/app/products
     environment:
       SERVER_PORT: 8080
       DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-coregate}
       DB_USERNAME: ${POSTGRES_USER:-coregate}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-coregate}
-      ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000}
+      ALLOWED_ORIGINS: http://localhost:${FRONTEND_PORT:-3000},http://localhost:3001,http://127.0.0.1:${FRONTEND_PORT:-3000}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-sanglv}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Sanglv@123}
       VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
@@ -59,7 +59,7 @@ services:
     build:
       context: ./coregate-ui
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://backend:8080
+      API_BASE_URL: http://backend:8080
     depends_on:
       - backend
     ports:

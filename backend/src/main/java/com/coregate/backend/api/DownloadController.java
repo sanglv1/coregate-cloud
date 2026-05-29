@@ -50,8 +50,14 @@ public class DownloadController {
         DownloadTokenEntity link = downloadService.getByToken(token);
         String fileName = downloadService.resolveArchiveFileName(link.getProductId());
         Path filePath = storageRoot.resolve(fileName).normalize();
-        if (!filePath.startsWith(storageRoot) || !Files.exists(filePath)) {
+        if (!filePath.startsWith(storageRoot)) {
             return ResponseEntity.notFound().build();
+        }
+        if (!Files.exists(filePath)) {
+            throw new IllegalArgumentException(
+                "File \"" + fileName + "\" not found in " + storageRoot
+                    + ". Add the zip to your download folder (DOWNLOAD_HOST_DIR / DOWNLOAD_STORAGE_DIR)."
+            );
         }
 
         Resource resource = new PathResource(filePath);

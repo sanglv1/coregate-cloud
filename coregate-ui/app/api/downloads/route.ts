@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildApiUrl } from '@/lib/config';
+import { getServerApiBaseUrl } from '@/lib/config';
 
 export async function GET(request: NextRequest) {
   try {
-    const response = await fetch(buildApiUrl(`/api/downloads?${request.nextUrl.searchParams.toString()}`));
+    const query = request.nextUrl.searchParams.toString();
+    const url = `${getServerApiBaseUrl()}/api/downloads${query ? `?${query}` : ''}`;
+    const response = await fetch(url);
     const body = await response.json();
     return NextResponse.json(body, { status: response.status });
   } catch (error) {
@@ -17,7 +19,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    const response = await fetch(buildApiUrl('/api/downloads'), {
+    const response = await fetch(`${getServerApiBaseUrl()}/api/downloads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

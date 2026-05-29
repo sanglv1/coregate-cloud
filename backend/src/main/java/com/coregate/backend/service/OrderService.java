@@ -4,12 +4,15 @@ import com.coregate.backend.api.dto.OrderDtos;
 import com.coregate.backend.domain.OrderEntity;
 import com.coregate.backend.domain.OrderItemEntity;
 import com.coregate.backend.domain.OrderStatus;
+import com.coregate.backend.domain.PaymentEntity;
 import com.coregate.backend.repository.OrderItemRepository;
 import com.coregate.backend.repository.OrderRepository;
+import com.coregate.backend.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -18,10 +21,16 @@ public class OrderService {
     private static final long DEFAULT_UNIT_PRICE = 100_000L;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final PaymentRepository paymentRepository;
 
-    public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+    public OrderService(
+        OrderRepository orderRepository,
+        OrderItemRepository orderItemRepository,
+        PaymentRepository paymentRepository
+    ) {
         this.orderRepository = orderRepository;
         this.orderItemRepository = orderItemRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional
@@ -58,6 +67,43 @@ public class OrderService {
         return toOrderResponse(order, items);
     }
 
+    @Transactional(readOnly = true)
+    public OrderDtos.OrderListResponse listOrders() {
+        List<OrderDtos.OrderSummaryResponse> summaries = orderRepository.findAllByOrderByCreatedAtDesc().stream()
+            .map(this::toOrderSummary)
+            .toList();
+        return new OrderDtos.OrderListResponse(summaries);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderDtos.OrderDetailResponse getOrderDetail(UUID orderId) {
+        OrderEntity order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        List<OrderItemEntity> items = orderItemRepository.findByOrderId(orderId);
+        Optional<PaymentEntity> payment = paymentRepository.findByOrderId(orderId);
+        return new OrderDtos.OrderDetailResponse(
+            toOrderResponse(order, items),
+            payment.map(p -> p.getStatus().name().toLowerCase()).orElse(null),
+            payment.map(PaymentEntity::getTxnRef).orElse(null),
+            payment.map(PaymentEntity::getProvider).orElse(null)
+        );
+    }
+
+    private OrderDtos.OrderSummaryResponse toOrderSummary(OrderEntity order) {
+        List<OrderItemEntity> items = orderItemRepository.findByOrderId(order.getId());
+        Optional<PaymentEntity> payment = paymentRepository.findByOrderId(order.getId());
+        return new OrderDtos.OrderSummaryResponse(
+            order.getId(),
+            order.getCustomerEmail(),
+            order.getStatus().name().toLowerCase(),
+            order.getTotalAmount(),
+            order.getCurrency(),
+            order.getCreatedAt(),
+            payment.map(p -> p.getStatus().name().toLowerCase()).orElse(null),
+            payment.map(PaymentEntity::getTxnRef).orElse(null),
+            items.size()
+        );
+    }
+
     @Transactional
     public void markOrderCompleted(UUID orderId) {
         OrderEntity order = orderRepository.findById(orderId).orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -83,6 +129,8 @@ public class OrderService {
             order.getStatus().name().toLowerCase(),
             order.getTotalAmount(),
             order.getCurrency(),
+            order.getCreatedAt(),
+            order.getUpdatedAt(),
             itemResponses
         );
     }

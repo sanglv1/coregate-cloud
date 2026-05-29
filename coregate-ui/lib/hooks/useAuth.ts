@@ -19,24 +19,40 @@ interface UseAuthResult {
 }
 
 const SESSION_STORAGE_KEY = 'coregate.session';
+const ADMIN_AUTH_STORAGE_KEY = 'coregate.admin.auth';
+
+export interface AdminCredentials {
+  username: string;
+  password: string;
+}
+
+export function readSession(): SessionData | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as SessionData;
+  } catch {
+    return null;
+  }
+}
 
 export function useRequireAuth(): UseAuthResult {
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
-      if (!raw) {
-        setSession(null);
-      } else {
-        setSession(JSON.parse(raw) as SessionData);
-      }
-    } catch {
-      setSession(null);
-    } finally {
+    function sync() {
+      setSession(readSession());
       setLoading(false);
     }
+    sync();
+    window.addEventListener('storage', sync);
+    window.addEventListener('coregate:session-changed', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('coregate:session-changed', sync);
+    };
   }, []);
 
   return { session, loading };
@@ -59,8 +75,32 @@ function hasRoleAccess(userRole: SessionUser['role'], requiredRole: SessionUser[
 
 export function saveSession(session: SessionData) {
   window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
+  window.dispatchEvent(new Event('coregate:session-changed'));
 }
 
 export function clearSession() {
   window.localStorage.removeItem(SESSION_STORAGE_KEY);
+  clearAdminCredentials();
+  window.dispatchEvent(new Event('coregate:session-changed'));
+}
+
+export function saveAdminCredentials(credentials: AdminCredentials) {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(ADMIN_AUTH_STORAGE_KEY, JSON.stringify(credentials));
+}
+
+export function getAdminCredentials(): AdminCredentials | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(ADMIN_AUTH_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AdminCredentials;
+  } catch {
+    return null;
+  }
+}
+
+export function clearAdminCredentials() {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(ADMIN_AUTH_STORAGE_KEY);
 }

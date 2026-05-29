@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { buildApiUrl } from '@/lib/config';
+import { getServerApiBaseUrl } from '@/lib/config';
 
 export async function GET(
   request: NextRequest,
@@ -7,7 +7,7 @@ export async function GET(
 ) {
   try {
     const { id } = await context.params;
-    const response = await fetch(buildApiUrl(`/api/orders/${id}`));
+    const response = await fetch(`${getServerApiBaseUrl()}/api/orders/${id}`);
     const body = await response.json();
     return NextResponse.json(body, { status: response.status });
   } catch (error) {

@@ -20,21 +20,12 @@ import java.util.*;
 
 @Service
 public class DownloadService {
-    private static final Map<String, String> PRODUCT_ARCHIVES = Map.of(
-        "vnpay-pay", "payment-demo.zip",
-        "vnpay-merchant-hosted", "merchant-hosted-demo.zip",
-        "vnpay-payment-link", "paymentlink-demo.zip",
-        "vnpay-token", "token-demo.zip",
-        "vnpay-installment", "installment-demo.zip",
-        "vnpay-recurring", "recurring-demo.zip",
-        "vnpay-preauth", "preauth-demo.zip"
-    );
-
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final DownloadAccessCodeRepository downloadAccessCodeRepository;
     private final DownloadTokenRepository downloadTokenRepository;
     private final EmailService emailService;
+    private final ProductArchiveService productArchiveService;
     private final String publicBaseUrl;
 
     public DownloadService(
@@ -43,6 +34,7 @@ public class DownloadService {
         DownloadAccessCodeRepository downloadAccessCodeRepository,
         DownloadTokenRepository downloadTokenRepository,
         EmailService emailService,
+        ProductArchiveService productArchiveService,
         @Value("${app.download.public-base-url:http://localhost:8080}") String publicBaseUrl
     ) {
         this.orderRepository = orderRepository;
@@ -50,6 +42,7 @@ public class DownloadService {
         this.downloadAccessCodeRepository = downloadAccessCodeRepository;
         this.downloadTokenRepository = downloadTokenRepository;
         this.emailService = emailService;
+        this.productArchiveService = productArchiveService;
         this.publicBaseUrl = publicBaseUrl;
     }
 
@@ -165,7 +158,7 @@ public class DownloadService {
     }
 
     public String resolveArchiveFileName(String productId) {
-        return PRODUCT_ARCHIVES.getOrDefault(productId, productId + ".zip");
+        return productArchiveService.resolveFileName(productId);
     }
 
     private String generateAccessCode() {
