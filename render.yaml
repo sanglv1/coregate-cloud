@@ -1,10 +1,5 @@
-# Render Blueprint — CHỈ backend + Postgres (dùng kèm Vercel cho UI)
-#
-# Cách dùng:
-# 1. Đổi tên file này thành render.yaml (hoặc copy nội dung vào render.yaml) rồi push GitHub
-# 2. Render Dashboard → New → Blueprint → chọn repo
-#
-# UI deploy trên Vercel — xem docs/DEPLOY-VERCEL-RENDER.md
+# FREE: backend Render + Postgres Neon (khuyến nghị) — hướng dẫn: docs/DEPLOY-FREE.md
+# Bản Render Postgres free (30 ngày): render.backend.free.yaml
 
 services:
   - type: web
@@ -12,39 +7,20 @@ services:
     runtime: docker
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    plan: starter
+    plan: free
     region: singapore
     healthCheckPath: /actuator/health
-    disk:
-      name: product-downloads
-      mountPath: /app/products
-      sizeGB: 5
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: SERVER_PORT
         value: "8080"
-      - key: DB_HOST
-        fromDatabase:
-          name: coregate-db
-          property: host
-      - key: DB_PORT
-        fromDatabase:
-          name: coregate-db
-          property: port
-      - key: DB_NAME
-        fromDatabase:
-          name: coregate-db
-          property: database
+      - key: DB_URL
+        sync: false
       - key: DB_USERNAME
-        fromDatabase:
-          name: coregate-db
-          property: user
+        sync: false
       - key: DB_PASSWORD
-        fromDatabase:
-          name: coregate-db
-          property: password
-      # Thêm URL Vercel sau bước deploy UI (phân tách bằng dấu phẩy nếu nhiều domain)
+        sync: false
       - key: ALLOWED_ORIGINS
         sync: false
       - key: DOWNLOAD_PUBLIC_BASE_URL
@@ -53,7 +29,7 @@ services:
           name: coregate-backend
           envVarKey: RENDER_EXTERNAL_URL
       - key: DOWNLOAD_STORAGE_DIR
-        value: /app/products
+        value: /tmp/products
       - key: MAIL_ENABLED
         value: "false"
       - key: VNPAY_TIMEZONE
@@ -70,10 +46,3 @@ services:
         sync: false
       - key: VNPAY_IPN_URL
         sync: false
-
-databases:
-  - name: coregate-db
-    plan: basic-256mb
-    region: singapore
-    databaseName: coregate
-    user: coregate

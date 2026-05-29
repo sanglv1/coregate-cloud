@@ -540,7 +540,8 @@ Nếu SMTP lỗi, giao dịch vẫn thành công; lỗi chỉ log `WARN`.
 
 | Cách | Mô tả |
 |------|--------|
-| **Vercel (UI) + Render (API)** | Khuyến nghị — UI nhanh, API + Postgres + ZIP trên Render → **[docs/DEPLOY-VERCEL-RENDER.md](docs/DEPLOY-VERCEL-RENDER.md)** |
+| **FREE — Vercel + Render + Neon** | $0, DB lâu dài → **[docs/DEPLOY-FREE.md](docs/DEPLOY-FREE.md)** |
+| **Vercel (UI) + Render (API)** | UI nhanh, API + Postgres trả phí → **[docs/DEPLOY-VERCEL-RENDER.md](docs/DEPLOY-VERCEL-RENDER.md)** |
 | **Render full stack** | Postgres + backend + UI cùng Render → **[docs/DEPLOY-RENDER.md](docs/DEPLOY-RENDER.md)** (`render.yaml`) |
 | **Render chỉ backend** | Dùng với Vercel → [`render.backend.yaml`](render.backend.yaml) |
 
